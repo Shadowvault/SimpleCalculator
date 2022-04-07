@@ -1,5 +1,6 @@
 package com.example.simplecalculator.presentation.screens
 
+import android.util.Log
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
@@ -16,7 +17,12 @@ class CalcScreenViewModel @Inject constructor(
 ) : ViewModel() {
 
     private val _state = mutableStateOf("")
-    val state: State<String> = _state
+    val conversion: State<String> = _state
+
+    private val _mainTextState = mutableStateOf("")
+    val mainTextState: State<String> = _state
+
+    private val _hasBeenEval = mutableStateOf(false)
 
     fun getConversion(baseC: String, targetC: String, amountC: String) {
         getConversionUseCase(baseC, targetC, amountC).onEach { result ->
