@@ -20,9 +20,9 @@ class GetConversionUseCase @Inject constructor(
             val conversion = repository.getConversion(baseC, targetC, amountC).toConversionWithAmount()
             emit(Resource.Success<ConversionWithAmount>(conversion))
         } catch(e: HttpException) {
-            emit(Resource.Error<ConversionWithAmount>(e.localizedMessage ?: "An unexpected error occured"))
+            emit(Resource.Error<ConversionWithAmount>(e.localizedMessage ?: "An unexpected error occurred"))
         } catch(e: IOException) {
-            emit(Resource.Error<ConversionWithAmount>("Couldn't reach server. Check your internet connection."))
+            emit(Resource.Error<ConversionWithAmount>(e.localizedMessage ?: "Couldn't reach server. Check your internet connection."))
         }
     }
 }

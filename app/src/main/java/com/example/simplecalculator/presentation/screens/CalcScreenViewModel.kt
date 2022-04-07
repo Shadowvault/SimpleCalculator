@@ -25,19 +25,16 @@ class CalcScreenViewModel @Inject constructor(
     private val _state = mutableStateOf("")
     val state: State<String> = _state
 
-    private fun getConversion(baseC: String, targetC: String, amountC: String) {
+    fun getConversion(baseC: String, targetC: String, amountC: String) {
+        Log.d("inGet","YO")
         getConversionUseCase(baseC, targetC, amountC).onEach { result ->
-
+            Log.d("on each","yy")
             when(result) {
-                is Resource.Success -> {
-
-                    Log.d("AS", result.data!!.conversionResult.toString())
-                    _state.value = result.data!!.conversionResult.toString()}
-
+                is Resource.Success -> _state.value = result.data!!.conversionResult.toString()
                 is Resource.Error -> _state.value = result.message.toString()
                 is Resource.Loading -> _state.value = ""
             }
-        }
+        }.launchIn(viewModelScope)
 
     }
 

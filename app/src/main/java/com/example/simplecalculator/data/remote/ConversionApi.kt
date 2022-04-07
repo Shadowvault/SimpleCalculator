@@ -6,7 +6,7 @@ import retrofit2.http.Path
 
 interface ConversionApi {
 
-    @GET("/pair/{baseC}/{targetC}/{amountC}/")
+    @GET("pair/{baseC}/{targetC}/{amountC}")
     suspend fun getConversion(
         @Path("baseC") baseC : String,
         @Path("targetC") targetC : String,

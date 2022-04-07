@@ -69,10 +69,10 @@ fun CalcScreen(
             Row(modifier = Modifier
                 //.height(IntrinsicSize.Min)
                 .fillMaxWidth()) {
-                Text("asdasd")
+                Text(viewModel.state.value)
                 Text("asdasd")
                 TextButton(onClick = {
-                    //Here i need to Implement the click
+                    viewModel.getConversion("EUR", "USD", "20")
                 }) {
                     Text("OK")
                 }

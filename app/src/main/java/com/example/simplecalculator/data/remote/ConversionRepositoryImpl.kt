@@ -1,5 +1,6 @@
 package com.example.simplecalculator.data.remote
 
+import android.util.Log
 import com.example.simplecalculator.data.remote.dto.ConversionWithAmountDto
 import com.example.simplecalculator.domain.ConversionRepository
 import javax.inject.Inject
