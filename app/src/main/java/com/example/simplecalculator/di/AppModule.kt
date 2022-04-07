@@ -1,7 +1,6 @@
 package com.example.simplecalculator.di
 
 import com.example.simplecalculator.common.Constants.BASE_URL
-import com.example.simplecalculator.common.DispatcherProvider
 import com.example.simplecalculator.data.remote.ConversionApi
 import com.example.simplecalculator.data.remote.ConversionRepositoryImpl
 import com.example.simplecalculator.domain.ConversionRepository
@@ -33,19 +32,6 @@ object AppModule {
     @Singleton
     fun provideConversionRepository(api: ConversionApi) : ConversionRepository {
         return ConversionRepositoryImpl(api)
-    }
-
-    @Provides
-    @Singleton
-    fun provideDispatchers(): DispatcherProvider = object : DispatcherProvider {
-        override val main: CoroutineDispatcher
-            get() = Dispatchers.Main
-        override val io: CoroutineDispatcher
-            get() = Dispatchers.IO
-        override val default: CoroutineDispatcher
-            get() = Dispatchers.Default
-        override val unconfined: CoroutineDispatcher
-            get() = Dispatchers.Unconfined
     }
 
 }

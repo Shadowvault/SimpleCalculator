@@ -1,6 +1,5 @@
 package com.example.simplecalculator.domain.usecase
 
-import android.util.Log
 import com.example.simplecalculator.common.Resource
 import com.example.simplecalculator.data.remote.dto.toConversionWithAmount
 import com.example.simplecalculator.domain.ConversionRepository
