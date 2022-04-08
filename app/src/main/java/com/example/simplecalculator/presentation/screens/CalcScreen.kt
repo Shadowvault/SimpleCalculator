@@ -7,6 +7,7 @@ import androidx.compose.foundation.text.ClickableText
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowForward
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.runtime.*
@@ -24,7 +25,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.toSize
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.example.simplecalculator.presentation.screens.components.NumberButton
+import com.adwi.neumorph.android.MorphButtonRounded
+import com.example.simplecalculator.presentation.screens.components.CalculatorButton
 import com.github.keelar.exprk.Expressions
 
 
@@ -40,10 +42,9 @@ fun CalcScreen(
     var hasBeenEval = false
 
 
-
     var fromCurr: String by remember { mutableStateOf("EUR") }
-    var fromExpanded by remember { mutableStateOf(false)}
-    var fromTextfieldSize by remember { mutableStateOf(Size.Zero)}
+    var fromExpanded by remember { mutableStateOf(false) }
+    var fromTextfieldSize by remember { mutableStateOf(Size.Zero) }
     val fromIcon = if (fromExpanded)
         Icons.Filled.KeyboardArrowUp
     else
@@ -51,16 +52,16 @@ fun CalcScreen(
 
 
     var toCurr: String by remember { mutableStateOf("USD") }
-    var toExpanded by remember { mutableStateOf(false)}
-    var toTextfieldSize by remember { mutableStateOf(Size.Zero)}
+    var toExpanded by remember { mutableStateOf(false) }
+    var toTextfieldSize by remember { mutableStateOf(Size.Zero) }
     val toIcon = if (fromExpanded)
         Icons.Filled.KeyboardArrowUp
     else
         Icons.Filled.KeyboardArrowDown
 
 
+    val currencyList = listOf<String>("EUR", "USD", "CHF", "SEK", "GBP", "JPY", "AUD", "CAD")
 
-    val currencyList = listOf<String>("EUR","USD","CHF","SEK","GBP","JPY","AUD","CAD")
 
     Surface() {
         Column(
@@ -92,11 +93,16 @@ fun CalcScreen(
                 }
             }
             Column {
-                Row(horizontalArrangement = Arrangement.SpaceEvenly) {
+                Row(
+                    modifier = Modifier.padding(8.dp),
+                    horizontalArrangement = Arrangement.SpaceEvenly,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
 
 
-                    Column(modifier = Modifier.weight(1f)) {
-                        TextField(
+                    Column(modifier = Modifier.weight(2f)) {
+                        OutlinedTextField(
+                            label = { Text("From") },
                             singleLine = true,
                             readOnly = true,
                             value = fromCurr,
@@ -104,11 +110,10 @@ fun CalcScreen(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .onGloballyPositioned { coordinates ->
-                                    //This value is used to assign to the DropDown the same width
                                     fromTextfieldSize = coordinates.size.toSize()
                                 },
                             trailingIcon = {
-                                Icon(fromIcon,"contentDescription",
+                                Icon(fromIcon, "contentDescription",
                                     Modifier.clickable { fromExpanded = !fromExpanded })
                             }
                         )
@@ -116,7 +121,7 @@ fun CalcScreen(
                             expanded = fromExpanded,
                             onDismissRequest = { fromExpanded = false },
                             modifier = Modifier
-                                .width(with(LocalDensity.current){fromTextfieldSize.width.toDp()})
+                                .width(with(LocalDensity.current) { fromTextfieldSize.width.toDp() })
                         ) {
                             currencyList.forEach { label ->
                                 DropdownMenuItem(onClick = {
@@ -129,19 +134,23 @@ fun CalcScreen(
                         }
                     }
 
+                    IconButton(
+                        onClick = {
+                            if (textFieldState.matches("-?\\d+(\\.\\d+)?".toRegex())) {
+                                viewModel.getConversion(fromCurr, toCurr, textFieldState)
+                            }
 
-
-
-
-                    Box(modifier = Modifier
-                        .weight(1f)
-                        .width(IntrinsicSize.Min), contentAlignment = Alignment.Center) {
-                        Icon(Icons.Filled.ArrowForward, "")
+                        }, modifier = Modifier
+                            .weight(1f)
+                            .width(IntrinsicSize.Min)
+                    ) {
+                        Icon(Icons.Filled.Check, "")
                     }
 
 
-                    Column(modifier = Modifier.weight(1f)) {
-                        TextField(
+                    Column(modifier = Modifier.weight(2f)) {
+                        OutlinedTextField(
+                            label = { Text("To") },
                             singleLine = true,
                             readOnly = true,
                             value = toCurr,
@@ -149,11 +158,10 @@ fun CalcScreen(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .onGloballyPositioned { coordinates ->
-                                    //This value is used to assign to the DropDown the same width
                                     toTextfieldSize = coordinates.size.toSize()
                                 },
                             trailingIcon = {
-                                Icon(toIcon,"contentDescription",
+                                Icon(toIcon, "contentDescription",
                                     Modifier.clickable { toExpanded = !toExpanded })
                             }
                         )
@@ -161,7 +169,7 @@ fun CalcScreen(
                             expanded = toExpanded,
                             onDismissRequest = { toExpanded = false },
                             modifier = Modifier
-                                .width(with(LocalDensity.current){toTextfieldSize.width.toDp()})
+                                .width(with(LocalDensity.current) { toTextfieldSize.width.toDp() })
                         ) {
                             currencyList.forEach { label ->
                                 DropdownMenuItem(onClick = {
@@ -173,23 +181,17 @@ fun CalcScreen(
                             }
                         }
                     }
-
-
-
-
-                    TextButton(onClick = {
-                        if (textFieldState.matches("-?\\d+(\\.\\d+)?".toRegex())) {
-                            viewModel.getConversion(fromCurr, toCurr, textFieldState)
-                        }
-
-                    }, modifier = Modifier
-                        .weight(1f)
-                        .width(IntrinsicSize.Min)) {
-                        Text("OK")
-
-                    }
                 }
-                Text(viewModel.conversion.value)
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(8.dp, 16.dp),
+                    horizontalArrangement = Arrangement.Start,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text("Conversion:" + viewModel.conversion.value)
+                }
+
                 Row(
                     modifier = Modifier
                         .height(IntrinsicSize.Min)
@@ -200,10 +202,8 @@ fun CalcScreen(
                             .height(IntrinsicSize.Min)
                             .weight(1f)
                     ) {
-                        NumberButton(
-                            modifier = Modifier
-                                .weight(1f)
-                                .aspectRatio(1f),
+                        CalculatorButton(
+                            modifier = Modifier.weight(1f),
                             number = "(",
                             onClick = {
                                 if (hasBeenEval) {
@@ -211,10 +211,8 @@ fun CalcScreen(
                                 }
                                 textFieldState += "("
                             })
-                        NumberButton(
-                            modifier = Modifier
-                                .weight(1f)
-                                .aspectRatio(1f),
+                        CalculatorButton(
+                            modifier = Modifier.weight(1f),
                             number = "7",
                             onClick = {
                                 if (hasBeenEval) {
@@ -223,10 +221,8 @@ fun CalcScreen(
                                 }
                                 textFieldState += "7"
                             })
-                        NumberButton(
-                            modifier = Modifier
-                                .weight(1f)
-                                .aspectRatio(1f),
+                        CalculatorButton(
+                            modifier = Modifier.weight(1f),
                             number = "4",
                             onClick = {
                                 if (hasBeenEval) {
@@ -235,10 +231,8 @@ fun CalcScreen(
                                 }
                                 textFieldState += "4"
                             })
-                        NumberButton(
-                            modifier = Modifier
-                                .weight(1f)
-                                .aspectRatio(1f),
+                        CalculatorButton(
+                            modifier = Modifier.weight(1f),
                             number = "1",
                             onClick = {
                                 if (hasBeenEval) {
@@ -247,10 +241,8 @@ fun CalcScreen(
                                 }
                                 textFieldState += "1"
                             })
-                        NumberButton(
-                            modifier = Modifier
-                                .weight(1f)
-                                .aspectRatio(1f),
+                        CalculatorButton(
+                            modifier = Modifier.weight(1f),
                             number = ".",
                             onClick = {
                                 if (textFieldState.isNotEmpty() && textFieldState.last().toString()
@@ -271,10 +263,8 @@ fun CalcScreen(
                             .height(IntrinsicSize.Min)
                             .weight(1f)
                     ) {
-                        NumberButton(
-                            modifier = Modifier
-                                .weight(1f)
-                                .aspectRatio(1f),
+                        CalculatorButton(
+                            modifier = Modifier.weight(1f),
                             number = ")",
                             onClick = {
                                 if (hasBeenEval) {
@@ -282,10 +272,8 @@ fun CalcScreen(
                                 }
                                 textFieldState += ")"
                             })
-                        NumberButton(
-                            modifier = Modifier
-                                .weight(1f)
-                                .aspectRatio(1f),
+                        CalculatorButton(
+                            modifier = Modifier.weight(1f),
                             number = "8",
                             onClick = {
                                 if (hasBeenEval) {
@@ -294,10 +282,8 @@ fun CalcScreen(
                                 }
                                 textFieldState += "8"
                             })
-                        NumberButton(
-                            modifier = Modifier
-                                .weight(1f)
-                                .aspectRatio(1f),
+                        CalculatorButton(
+                            modifier = Modifier.weight(1f),
                             number = "5",
                             onClick = {
                                 if (hasBeenEval) {
@@ -306,10 +292,8 @@ fun CalcScreen(
                                 }
                                 textFieldState += "5"
                             })
-                        NumberButton(
-                            modifier = Modifier
-                                .weight(1f)
-                                .aspectRatio(1f),
+                        CalculatorButton(
+                            modifier = Modifier.weight(1f),
                             number = "2",
                             onClick = {
                                 if (hasBeenEval) {
@@ -318,10 +302,8 @@ fun CalcScreen(
                                 }
                                 textFieldState += "2"
                             })
-                        NumberButton(
-                            modifier = Modifier
-                                .weight(1f)
-                                .aspectRatio(1f),
+                        CalculatorButton(
+                            modifier = Modifier.weight(1f),
                             number = "0",
                             onClick = {
                                 if (hasBeenEval) {
@@ -337,10 +319,8 @@ fun CalcScreen(
                             .height(IntrinsicSize.Min)
                             .weight(1f)
                     ) {
-                        NumberButton(
-                            modifier = Modifier
-                                .weight(1f)
-                                .aspectRatio(1f),
+                        CalculatorButton(
+                            modifier = Modifier.weight(1f),
                             number = "AC",
                             onClick = {
                                 if (hasBeenEval) {
@@ -350,10 +330,8 @@ fun CalcScreen(
                                 textFieldState = ""
                                 textFieldHistoryState = ""
                             })
-                        NumberButton(
-                            modifier = Modifier
-                                .weight(1f)
-                                .aspectRatio(1f),
+                        CalculatorButton(
+                            modifier = Modifier.weight(1f),
                             number = "9",
                             onClick = {
                                 if (hasBeenEval) {
@@ -362,10 +340,8 @@ fun CalcScreen(
                                 }
                                 textFieldState += "9"
                             })
-                        NumberButton(
-                            modifier = Modifier
-                                .weight(1f)
-                                .aspectRatio(1f),
+                        CalculatorButton(
+                            modifier = Modifier.weight(1f),
                             number = "6",
                             onClick = {
                                 if (hasBeenEval) {
@@ -374,10 +350,8 @@ fun CalcScreen(
                                 }
                                 textFieldState += "6"
                             })
-                        NumberButton(
-                            modifier = Modifier
-                                .weight(1f)
-                                .aspectRatio(1f),
+                        CalculatorButton(
+                            modifier = Modifier.weight(1f),
                             number = "3",
                             onClick = {
                                 if (hasBeenEval) {
@@ -386,10 +360,8 @@ fun CalcScreen(
                                 }
                                 textFieldState += "3"
                             })
-                        NumberButton(
-                            modifier = Modifier
-                                .weight(1f)
-                                .aspectRatio(1f),
+                        CalculatorButton(
+                            modifier = Modifier.weight(1f),
                             number = "Del",
                             onClick = {
                                 if (hasBeenEval) {
@@ -405,10 +377,8 @@ fun CalcScreen(
                             .height(IntrinsicSize.Min)
                             .weight(1f)
                     ) {
-                        NumberButton(
-                            modifier = Modifier
-                                .weight(1f)
-                                .aspectRatio(1f),
+                        CalculatorButton(
+                            modifier = Modifier.weight(1f),
                             number = "/",
                             onClick = {
                                 if (textFieldState.isNotEmpty() && textFieldState.last().toString()
@@ -421,10 +391,8 @@ fun CalcScreen(
 
                                 }
                             })
-                        NumberButton(
-                            modifier = Modifier
-                                .weight(1f)
-                                .aspectRatio(1f),
+                        CalculatorButton(
+                            modifier = Modifier.weight(1f),
                             number = "*",
                             onClick = {
                                 if (textFieldState.isNotEmpty() && textFieldState.last().toString()
@@ -436,10 +404,8 @@ fun CalcScreen(
                                     textFieldState += "*"
                                 }
                             })
-                        NumberButton(
-                            modifier = Modifier
-                                .weight(1f)
-                                .aspectRatio(1f),
+                        CalculatorButton(
+                            modifier = Modifier.weight(1f),
                             number = "+",
                             onClick = {
                                 if (textFieldState.isNotEmpty() && textFieldState.last().toString()
@@ -452,10 +418,8 @@ fun CalcScreen(
 
                                 }
                             })
-                        NumberButton(
-                            modifier = Modifier
-                                .weight(1f)
-                                .aspectRatio(1f),
+                        CalculatorButton(
+                            modifier = Modifier.weight(1f),
                             number = "-",
                             onClick = {
                                 if (hasBeenEval) {
@@ -463,10 +427,8 @@ fun CalcScreen(
                                 }
                                 textFieldState += "-"
                             })
-                        NumberButton(
-                            modifier = Modifier
-                                .weight(1f)
-                                .aspectRatio(1f),
+                        CalculatorButton(
+                            modifier = Modifier.weight(1f),
                             number = "=",
                             onClick = {
                                 try {
