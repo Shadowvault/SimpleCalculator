@@ -1,12 +1,10 @@
 package com.example.simplecalculator.presentation.screens
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.ClickableText
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
@@ -19,15 +17,14 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.toSize
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.adwi.neumorph.android.MorphButtonRounded
 import com.example.simplecalculator.presentation.screens.components.CalculatorButton
-import com.github.keelar.exprk.Expressions
 
 
 @Preview
@@ -36,11 +33,6 @@ fun CalcScreen(
     viewModel: CalcScreenViewModel = hiltViewModel(),
 
     ) {
-
-    var textFieldState by remember { mutableStateOf("") }
-    var textFieldHistoryState by remember { mutableStateOf("") }
-    var hasBeenEval = false
-
 
     var fromCurr: String by remember { mutableStateOf("EUR") }
     var fromExpanded by remember { mutableStateOf(false) }
@@ -63,7 +55,7 @@ fun CalcScreen(
     val currencyList = listOf<String>("EUR", "USD", "CHF", "SEK", "GBP", "JPY", "AUD", "CAD")
 
 
-    Surface() {
+    Surface {
         Column(
             modifier = Modifier.fillMaxSize(),
             verticalArrangement = Arrangement.SpaceBetween,
@@ -72,7 +64,7 @@ fun CalcScreen(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(IntrinsicSize.Min)
+                    //.height(IntrinsicSize.Min)
                     .padding(16.dp),
                 contentAlignment = Alignment.BottomEnd
             ) {
@@ -80,15 +72,17 @@ fun CalcScreen(
                     horizontalAlignment = Alignment.End
                 ) {
                     ClickableText(
-                        AnnotatedString(textFieldHistoryState),
-                        style = TextStyle(fontSize = 30.sp),
+                        AnnotatedString(text = viewModel.historyTextFlow.value),
+                        style = TextStyle(fontSize = 24.sp),
+                        maxLines =1,
                         onClick = {
-                            textFieldState = Expressions().eval(textFieldHistoryState).toString()
+                            viewModel.appendHistory()
                         })
-                    Spacer(modifier = Modifier.height(20.dp))
+                    Spacer(modifier = Modifier.height(42.dp))
                     Text(
-                        textFieldState, textAlign = TextAlign.End,
-                        fontSize = 40.sp
+                        viewModel.mainTextState.value, textAlign = TextAlign.End,
+                        fontSize = 40.sp,
+                        maxLines = 1,
                     )
                 }
             }
@@ -136,8 +130,12 @@ fun CalcScreen(
 
                     IconButton(
                         onClick = {
-                            if (textFieldState.matches("-?\\d+(\\.\\d+)?".toRegex())) {
-                                viewModel.getConversion(fromCurr, toCurr, textFieldState)
+                            if (viewModel.mainTextState.value.matches("-?\\d+(\\.\\d+)?".toRegex())) {
+                                viewModel.getConversion(
+                                    fromCurr,
+                                    toCurr,
+                                    viewModel.mainTextState.value
+                                )
                             }
 
                         }, modifier = Modifier
@@ -183,262 +181,168 @@ fun CalcScreen(
                     }
                 }
                 Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(8.dp, 16.dp),
+                    modifier = Modifier.fillMaxWidth().padding(8.dp, 16.dp),
                     horizontalArrangement = Arrangement.Start,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text("Conversion:" + viewModel.conversion.value)
+                    Text(
+                        "Conversion: " + viewModel.conversion.value,
+                        style = TextStyle(fontSize = 24.sp, fontWeight = FontWeight.Normal)
+                    )
                 }
 
-                Row(
-                    modifier = Modifier
-                        .height(IntrinsicSize.Min)
-                        .fillMaxWidth()
-                ) {
+                Row(modifier = Modifier
+                    .height(IntrinsicSize.Min)
+                    .fillMaxWidth()
+                    .padding(2.dp),
+                    ) {
                     Column(
                         modifier = Modifier
                             .height(IntrinsicSize.Min)
-                            .weight(1f)
+                            .weight(1f),
+                        horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         CalculatorButton(
                             modifier = Modifier.weight(1f),
                             number = "(",
                             onClick = {
-                                if (hasBeenEval) {
-                                    hasBeenEval = false
-                                }
-                                textFieldState += "("
-                            })
+                                viewModel.appendButtonChar("(")
+                            }, buttonColor = Color(242, 242, 244), textColor = Color.DarkGray)
                         CalculatorButton(
                             modifier = Modifier.weight(1f),
                             number = "7",
                             onClick = {
-                                if (hasBeenEval) {
-                                    textFieldState = ""
-                                    hasBeenEval = false
-                                }
-                                textFieldState += "7"
-                            })
+                                viewModel.appendButtonChar("7")
+                            }, buttonColor = Color(242, 242, 244), textColor = Color.DarkGray)
                         CalculatorButton(
                             modifier = Modifier.weight(1f),
                             number = "4",
                             onClick = {
-                                if (hasBeenEval) {
-                                    textFieldState = ""
-                                    hasBeenEval = false
-                                }
-                                textFieldState += "4"
-                            })
+                                viewModel.appendButtonChar("4")
+                            }, buttonColor = Color(242, 242, 244), textColor = Color.DarkGray)
                         CalculatorButton(
                             modifier = Modifier.weight(1f),
                             number = "1",
                             onClick = {
-                                if (hasBeenEval) {
-                                    textFieldState = ""
-                                    hasBeenEval = false
-                                }
-                                textFieldState += "1"
-                            })
+                                viewModel.appendButtonChar("1")
+                            }, buttonColor = Color(242, 242, 244), textColor = Color.DarkGray)
                         CalculatorButton(
                             modifier = Modifier.weight(1f),
                             number = ".",
                             onClick = {
-                                if (textFieldState.isNotEmpty() && textFieldState.last().toString()
-                                    !in arrayOf("+", "-", "/", "*", ".")
-                                ) {
-                                    if (hasBeenEval) {
-                                        textFieldState = ""
-                                        hasBeenEval = false
-                                    } else {
-                                        textFieldState += "."
-                                    }
-                                }
-                            })
-
+                                viewModel.appendButtonChar(".")
+                            }, buttonColor = Color(242, 242, 244), textColor = Color.DarkGray)
                     }
                     Column(
                         modifier = Modifier
                             .height(IntrinsicSize.Min)
-                            .weight(1f)
+                            .weight(1f),
+                        horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         CalculatorButton(
                             modifier = Modifier.weight(1f),
                             number = ")",
                             onClick = {
-                                if (hasBeenEval) {
-                                    hasBeenEval = false
-                                }
-                                textFieldState += ")"
-                            })
+                                viewModel.appendButtonChar(")")
+                            }, buttonColor = Color(242, 242, 244), textColor = Color.DarkGray)
                         CalculatorButton(
                             modifier = Modifier.weight(1f),
                             number = "8",
                             onClick = {
-                                if (hasBeenEval) {
-                                    textFieldState = ""
-                                    hasBeenEval = false
-                                }
-                                textFieldState += "8"
-                            })
+                                viewModel.appendButtonChar("8")
+                            }, buttonColor = Color(242, 242, 244), textColor = Color.DarkGray)
                         CalculatorButton(
                             modifier = Modifier.weight(1f),
                             number = "5",
                             onClick = {
-                                if (hasBeenEval) {
-                                    textFieldState = ""
-                                    hasBeenEval = false
-                                }
-                                textFieldState += "5"
-                            })
+                                viewModel.appendButtonChar("5")
+                            }, buttonColor = Color(242, 242, 244), textColor = Color.DarkGray)
                         CalculatorButton(
                             modifier = Modifier.weight(1f),
                             number = "2",
                             onClick = {
-                                if (hasBeenEval) {
-                                    textFieldState = ""
-                                    hasBeenEval = false
-                                }
-                                textFieldState += "2"
-                            })
+                                viewModel.appendButtonChar("2")
+                            }, buttonColor = Color(242, 242, 244), textColor = Color.DarkGray)
                         CalculatorButton(
                             modifier = Modifier.weight(1f),
                             number = "0",
                             onClick = {
-                                if (hasBeenEval) {
-                                    textFieldState = ""
-                                    hasBeenEval = false
-                                }
-                                textFieldState += "0"
-                            })
-
+                                viewModel.appendButtonChar("0")
+                            }, buttonColor = Color(242, 242, 244), textColor = Color.DarkGray)
                     }
                     Column(
                         modifier = Modifier
                             .height(IntrinsicSize.Min)
-                            .weight(1f)
+                            .weight(1f),
+                        horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         CalculatorButton(
                             modifier = Modifier.weight(1f),
                             number = "AC",
                             onClick = {
-                                if (hasBeenEval) {
-                                    textFieldState = ""
-                                    hasBeenEval = false
-                                }
-                                textFieldState = ""
-                                textFieldHistoryState = ""
-                            })
+                                viewModel.clearTexts()
+                            }, buttonColor = Color(242, 242, 244), textColor = Color.DarkGray)
                         CalculatorButton(
                             modifier = Modifier.weight(1f),
                             number = "9",
                             onClick = {
-                                if (hasBeenEval) {
-                                    textFieldState = ""
-                                    hasBeenEval = false
-                                }
-                                textFieldState += "9"
-                            })
+                                viewModel.appendButtonChar("9")
+                            }, buttonColor = Color(242, 242, 244), textColor = Color.DarkGray)
                         CalculatorButton(
                             modifier = Modifier.weight(1f),
                             number = "6",
                             onClick = {
-                                if (hasBeenEval) {
-                                    textFieldState = ""
-                                    hasBeenEval = false
-                                }
-                                textFieldState += "6"
-                            })
+                                viewModel.appendButtonChar("6")
+                            }, buttonColor = Color(242, 242, 244), textColor = Color.DarkGray)
                         CalculatorButton(
                             modifier = Modifier.weight(1f),
                             number = "3",
                             onClick = {
-                                if (hasBeenEval) {
-                                    textFieldState = ""
-                                    hasBeenEval = false
-                                }
-                                textFieldState += "3"
-                            })
+                                viewModel.appendButtonChar("3")
+                            }, buttonColor = Color(242, 242, 244), textColor = Color.DarkGray)
                         CalculatorButton(
                             modifier = Modifier.weight(1f),
                             number = "Del",
                             onClick = {
-                                if (hasBeenEval) {
-                                    textFieldState = ""
-                                    hasBeenEval = false
-                                }
-                                textFieldState = textFieldState.dropLast(1)
-                            })
-
+                                viewModel.appendButtonChar("Del")
+                            }, buttonColor = Color(242, 242, 244), textColor = Color.DarkGray)
                     }
                     Column(
                         modifier = Modifier
                             .height(IntrinsicSize.Min)
-                            .weight(1f)
+                            .weight(1f),
+                        horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         CalculatorButton(
                             modifier = Modifier.weight(1f),
                             number = "/",
                             onClick = {
-                                if (textFieldState.isNotEmpty() && textFieldState.last().toString()
-                                    !in arrayOf("+", "-", "/", "*", ".")
-                                ) {
-                                    if (hasBeenEval) {
-                                        hasBeenEval = false
-                                    }
-                                    textFieldState += "/"
-
-                                }
-                            })
+                                viewModel.appendButtonChar("/")
+                            }, buttonColor = Color(239, 239, 239), textColor = Color.DarkGray)
                         CalculatorButton(
                             modifier = Modifier.weight(1f),
                             number = "*",
                             onClick = {
-                                if (textFieldState.isNotEmpty() && textFieldState.last().toString()
-                                    !in arrayOf("+", "-", "/", "*", ".")
-                                ) {
-                                    if (hasBeenEval) {
-                                        hasBeenEval = false
-                                    }
-                                    textFieldState += "*"
-                                }
-                            })
+                                viewModel.appendButtonChar("*")
+                            }, buttonColor = Color(239, 239, 239), textColor = Color.DarkGray)
                         CalculatorButton(
                             modifier = Modifier.weight(1f),
                             number = "+",
                             onClick = {
-                                if (textFieldState.isNotEmpty() && textFieldState.last().toString()
-                                    !in arrayOf("+", "-", "/", "*", ".")
-                                ) {
-                                    if (hasBeenEval) {
-                                        hasBeenEval = false
-                                    }
-                                    textFieldState += "+"
-
-                                }
-                            })
+                                viewModel.appendButtonChar("+")
+                            }, buttonColor = Color(239, 239, 239), textColor = Color.DarkGray)
                         CalculatorButton(
                             modifier = Modifier.weight(1f),
                             number = "-",
                             onClick = {
-                                if (hasBeenEval) {
-                                    hasBeenEval = false
-                                }
-                                textFieldState += "-"
-                            })
+                                viewModel.appendButtonChar("-")
+                            }, buttonColor = Color(239, 239, 239), textColor = Color.DarkGray)
                         CalculatorButton(
                             modifier = Modifier.weight(1f),
                             number = "=",
                             onClick = {
-                                try {
-                                    textFieldHistoryState = textFieldState
-                                    textFieldState = Expressions().eval(textFieldState).toString()
-                                    hasBeenEval = true
-                                } catch (e: Exception) {
-                                    textFieldHistoryState = ""
-                                }
-                            })
+                                viewModel.calculateResult()
+                            }, buttonColor = Color(239, 239, 239), textColor = Color.DarkGray)
                     }
                 }
             }
