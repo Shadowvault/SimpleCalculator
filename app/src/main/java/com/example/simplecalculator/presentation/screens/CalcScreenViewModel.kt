@@ -33,7 +33,6 @@ class CalcScreenViewModel @Inject constructor(
     private val _roundBracketCount = mutableStateOf<Int>(0)
     private val _canAppendDot = mutableStateOf(true)
 
-
     fun getConversion(baseC: String, targetC: String, amountC: String) {
         getConversionUseCase(baseC, targetC, amountC).onEach { result ->
             when (result) {
@@ -93,13 +92,13 @@ class CalcScreenViewModel @Inject constructor(
                 }
             }
             "-" -> {
-                if (_hasBeenEval.value) {
-                    _mainTextFlow.value = char
-                    _hasBeenEval.value = false
-                } else {
-                    _mainTextFlow.value += char
+                if (_mainTextFlow.value.isNotEmpty()) {
+                    if (_mainTextFlow.value.last().toString() != ".") {
+                        _mainTextFlow.value += char
+                        _hasBeenEval.value = false
+                        _canAppendDot.value = true
+                    }
                 }
-                _canAppendDot.value = true
             }
             "." -> {
                 if (_mainTextFlow.value.isNotEmpty()) {
@@ -127,14 +126,12 @@ class CalcScreenViewModel @Inject constructor(
             }
             "Del" -> {
                 if (_mainTextFlow.value.isNotEmpty()) {
-                    if (_mainTextFlow.value.last().toString() in arrayOf("+", "-", "/", "*", ".")) {
-                        _canAppendDot.value = false
-                    }
-                    if (_mainTextFlow.value.last().toString() == "(") {
-                        _roundBracketCount.value -= 1
-                    }
-                    if (_mainTextFlow.value.last().toString() == ")") {
-                        _roundBracketCount.value += 1
+
+                    when(_mainTextFlow.value.last().toString()) {
+                        "-","+","*","/" -> _canAppendDot.value = false
+                        "." -> _canAppendDot.value = true
+                        "(" -> _roundBracketCount.value -= 1
+                        ")" -> _roundBracketCount.value += 1
                     }
                     _mainTextFlow.value = _mainTextFlow.value.dropLast(1)
                 }
@@ -143,9 +140,29 @@ class CalcScreenViewModel @Inject constructor(
     }
 
     fun calculateResult() {
+        var tryEval = _mainTextFlow.value
+        var countB = _roundBracketCount.value
+        var i = 0
+        while (i < tryEval.length && tryEval.isNotEmpty()) {
+            if (tryEval.last().toString() in arrayOf("-", "+", "*", "/", ".", "(")) {
+                if (tryEval.last().toString() == "(") {
+                    countB -= 1
+                }
+                tryEval = tryEval.dropLast(1)
+                i += 1
+            } else {
+                break
+            }
+        }
+        if (countB > 0) {
+            tryEval += ")".repeat(countB)
+        }
         try {
-            _historyTextFlow.value = _mainTextFlow.value
-            _mainTextFlow.value = Expressions().eval(_mainTextFlow.value).toString()
+            _historyTextFlow.value = tryEval
+            tryEval = Expressions().eval(tryEval).toString()
+            Log.d("meta to eval", tryEval)
+            _mainTextFlow.value = tryEval
+            Log.d("meta to ison", _mainTextFlow.value)
             _hasBeenEval.value = true
             _roundBracketCount.value = 0
             _canAppendDot.value =
@@ -153,28 +170,6 @@ class CalcScreenViewModel @Inject constructor(
 
         } catch (e: Exception) {
             _historyTextFlow.value = ""
-        }
-    }
-
-    fun appendHistory() {
-
-        if (_mainTextFlow.value.isNotEmpty()) {
-            if (_mainTextFlow.value.last().toString() in arrayOf("-", "+", "*", "/", "(")) {
-                try {
-                    _mainTextFlow.value =
-                        _mainTextFlow.value + Expressions().eval(_historyTextFlow.value).toString()
-
-                } catch (e: Exception) {
-                    _historyTextFlow.value = ""
-                }
-            }
-        } else {
-            try {
-                _mainTextFlow.value =
-                    _mainTextFlow.value + Expressions().eval(_historyTextFlow.value).toString()
-            } catch (e: Exception) {
-                _historyTextFlow.value = ""
-            }
         }
     }
 
@@ -187,8 +182,6 @@ class CalcScreenViewModel @Inject constructor(
         _conversionResult.value = ""
         _canAppendDot.value = true
         _roundBracketCount.value = 0
-
     }
-
-
+    
 }

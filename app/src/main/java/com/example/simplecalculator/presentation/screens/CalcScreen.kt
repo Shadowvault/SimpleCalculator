@@ -1,6 +1,7 @@
 package com.example.simplecalculator.presentation.screens
 
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.*
+import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.ClickableText
 import androidx.compose.material.*
@@ -12,6 +13,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
@@ -46,16 +48,17 @@ fun CalcScreen(
     var toCurr: String by remember { mutableStateOf("USD") }
     var toExpanded by remember { mutableStateOf(false) }
     var toTextfieldSize by remember { mutableStateOf(Size.Zero) }
-    val toIcon = if (fromExpanded)
+    val toIcon = if (toExpanded)
         Icons.Filled.KeyboardArrowUp
     else
         Icons.Filled.KeyboardArrowDown
 
+    val scroll = rememberScrollState(0)
+    val historyScroll = rememberScrollState(0)
 
     val currencyList = listOf<String>("EUR", "USD", "CHF", "SEK", "GBP", "JPY", "AUD", "CAD")
 
-
-    Surface {
+    Surface() {
         Column(
             modifier = Modifier.fillMaxSize(),
             verticalArrangement = Arrangement.SpaceBetween,
@@ -64,26 +67,29 @@ fun CalcScreen(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    //.height(IntrinsicSize.Min)
-                    .padding(16.dp),
+                    .padding(8.dp),
                 contentAlignment = Alignment.BottomEnd
             ) {
                 Column(
                     horizontalAlignment = Alignment.End
                 ) {
-                    ClickableText(
-                        AnnotatedString(text = viewModel.historyTextFlow.value),
-                        style = TextStyle(fontSize = 24.sp),
-                        maxLines =1,
-                        onClick = {
-                            viewModel.appendHistory()
-                        })
+                    Box(modifier = Modifier.height(64.dp)) {
+                        Text(
+                            viewModel.historyTextFlow.value, textAlign = TextAlign.End,
+                            fontSize = 24.sp,
+                            maxLines = 2,
+                            modifier = Modifier.horizontalScroll(historyScroll)
+                        )
+                    }
                     Spacer(modifier = Modifier.height(42.dp))
-                    Text(
-                        viewModel.mainTextState.value, textAlign = TextAlign.End,
-                        fontSize = 40.sp,
-                        maxLines = 1,
-                    )
+                    Box(modifier = Modifier.height(64.dp)) {
+                        Text(
+                            viewModel.mainTextState.value, textAlign = TextAlign.End,
+                            fontSize = 42.sp,
+                            maxLines = 2,
+                            modifier = Modifier.horizontalScroll(scroll)
+                        )
+                    }
                 }
             }
             Column {
@@ -130,7 +136,7 @@ fun CalcScreen(
 
                     IconButton(
                         onClick = {
-                            if (viewModel.mainTextState.value.matches("-?\\d+(\\.\\d+)?".toRegex())) {
+                            if (viewModel.mainTextState.value.matches("^([0-9]+\\.?[0-9]*|\\.[0-9]+)\$".toRegex())) {
                                 viewModel.getConversion(
                                     fromCurr,
                                     toCurr,
@@ -181,7 +187,9 @@ fun CalcScreen(
                     }
                 }
                 Row(
-                    modifier = Modifier.fillMaxWidth().padding(8.dp, 16.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(8.dp, 16.dp),
                     horizontalArrangement = Arrangement.Start,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -191,11 +199,60 @@ fun CalcScreen(
                     )
                 }
 
-                Row(modifier = Modifier
-                    .height(IntrinsicSize.Min)
-                    .fillMaxWidth()
-                    .padding(2.dp),
+                Row(
+                    modifier = Modifier
+                        .height(IntrinsicSize.Min)
+                        .fillMaxWidth()
+                        .padding(2.dp),
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .height(IntrinsicSize.Min)
+                            .weight(1f),
+                        horizontalAlignment = Alignment.CenterHorizontally
                     ) {
+                        CalculatorButton(
+                            modifier = Modifier.weight(1f),
+                            number = "AC",
+                            onClick = {
+                                viewModel.clearTexts()
+                            },
+                            //buttonColor = Color(242, 242, 244),
+                            textColor = Color(124,64,254)
+                        )
+                        CalculatorButton(
+                            modifier = Modifier.weight(1f),
+                            number = "7",
+                            onClick = {
+                                viewModel.appendButtonChar("7")
+                            },
+                            //buttonColor = Color(242, 242, 244), textColor = Color.DarkGray
+                        )
+                        CalculatorButton(
+                            modifier = Modifier.weight(1f),
+                            number = "4",
+                            onClick = {
+                                viewModel.appendButtonChar("4")
+                            },
+                            //buttonColor = Color(242, 242, 244), textColor = Color.DarkGray
+                        )
+                        CalculatorButton(
+                            modifier = Modifier.weight(1f),
+                            number = "1",
+                            onClick = {
+                                viewModel.appendButtonChar("1")
+                            },
+                            //buttonColor = Color(242, 242, 244), textColor = Color.DarkGray
+                        )
+                        CalculatorButton(
+                            modifier = Modifier.weight(1f),
+                            number = ".",
+                            onClick = {
+                                viewModel.appendButtonChar(".")
+                            },
+                            //buttonColor = Color(242, 242, 244), textColor = Color.DarkGray
+                        )
+                    }
                     Column(
                         modifier = Modifier
                             .height(IntrinsicSize.Min)
@@ -207,31 +264,40 @@ fun CalcScreen(
                             number = "(",
                             onClick = {
                                 viewModel.appendButtonChar("(")
-                            }, buttonColor = Color(242, 242, 244), textColor = Color.DarkGray)
+                            },
+                            //buttonColor = Color(242, 242, 244), textColor = Color.DarkGray
+                        )
                         CalculatorButton(
                             modifier = Modifier.weight(1f),
-                            number = "7",
+                            number = "8",
                             onClick = {
-                                viewModel.appendButtonChar("7")
-                            }, buttonColor = Color(242, 242, 244), textColor = Color.DarkGray)
+                                viewModel.appendButtonChar("8")
+                            }, //buttonColor = Color(242, 242, 244), textColor = Color.DarkGray
+                        )
                         CalculatorButton(
                             modifier = Modifier.weight(1f),
-                            number = "4",
+                            number = "5",
                             onClick = {
-                                viewModel.appendButtonChar("4")
-                            }, buttonColor = Color(242, 242, 244), textColor = Color.DarkGray)
+                                viewModel.appendButtonChar("5")
+                            },
+                            //buttonColor = Color(242, 242, 244), textColor = Color.DarkGray
+                        )
                         CalculatorButton(
                             modifier = Modifier.weight(1f),
-                            number = "1",
+                            number = "2",
                             onClick = {
-                                viewModel.appendButtonChar("1")
-                            }, buttonColor = Color(242, 242, 244), textColor = Color.DarkGray)
+                                viewModel.appendButtonChar("2")
+                            },
+                            //buttonColor = Color(242, 242, 244), textColor = Color.DarkGray
+                        )
                         CalculatorButton(
                             modifier = Modifier.weight(1f),
-                            number = ".",
+                            number = "0",
                             onClick = {
-                                viewModel.appendButtonChar(".")
-                            }, buttonColor = Color(242, 242, 244), textColor = Color.DarkGray)
+                                viewModel.appendButtonChar("0")
+                            },
+                            //buttonColor = Color(242, 242, 244), textColor = Color.DarkGray
+                        )
                     }
                     Column(
                         modifier = Modifier
@@ -244,68 +310,41 @@ fun CalcScreen(
                             number = ")",
                             onClick = {
                                 viewModel.appendButtonChar(")")
-                            }, buttonColor = Color(242, 242, 244), textColor = Color.DarkGray)
-                        CalculatorButton(
-                            modifier = Modifier.weight(1f),
-                            number = "8",
-                            onClick = {
-                                viewModel.appendButtonChar("8")
-                            }, buttonColor = Color(242, 242, 244), textColor = Color.DarkGray)
-                        CalculatorButton(
-                            modifier = Modifier.weight(1f),
-                            number = "5",
-                            onClick = {
-                                viewModel.appendButtonChar("5")
-                            }, buttonColor = Color(242, 242, 244), textColor = Color.DarkGray)
-                        CalculatorButton(
-                            modifier = Modifier.weight(1f),
-                            number = "2",
-                            onClick = {
-                                viewModel.appendButtonChar("2")
-                            }, buttonColor = Color(242, 242, 244), textColor = Color.DarkGray)
-                        CalculatorButton(
-                            modifier = Modifier.weight(1f),
-                            number = "0",
-                            onClick = {
-                                viewModel.appendButtonChar("0")
-                            }, buttonColor = Color(242, 242, 244), textColor = Color.DarkGray)
-                    }
-                    Column(
-                        modifier = Modifier
-                            .height(IntrinsicSize.Min)
-                            .weight(1f),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        CalculatorButton(
-                            modifier = Modifier.weight(1f),
-                            number = "AC",
-                            onClick = {
-                                viewModel.clearTexts()
-                            }, buttonColor = Color(242, 242, 244), textColor = Color.DarkGray)
+                            },
+                            //buttonColor = Color(242, 242, 244), textColor = Color.DarkGray
+                        )
                         CalculatorButton(
                             modifier = Modifier.weight(1f),
                             number = "9",
                             onClick = {
                                 viewModel.appendButtonChar("9")
-                            }, buttonColor = Color(242, 242, 244), textColor = Color.DarkGray)
+                            },
+                            //buttonColor = Color(242, 242, 244), textColor = Color.DarkGray
+                        )
                         CalculatorButton(
                             modifier = Modifier.weight(1f),
                             number = "6",
                             onClick = {
                                 viewModel.appendButtonChar("6")
-                            }, buttonColor = Color(242, 242, 244), textColor = Color.DarkGray)
+                            },
+                            //buttonColor = Color(242, 242, 244), textColor = Color.DarkGray
+                        )
                         CalculatorButton(
                             modifier = Modifier.weight(1f),
                             number = "3",
                             onClick = {
                                 viewModel.appendButtonChar("3")
-                            }, buttonColor = Color(242, 242, 244), textColor = Color.DarkGray)
+                            },
+                            //buttonColor = Color(242, 242, 244), textColor = Color.DarkGray
+                        )
                         CalculatorButton(
                             modifier = Modifier.weight(1f),
                             number = "Del",
                             onClick = {
                                 viewModel.appendButtonChar("Del")
-                            }, buttonColor = Color(242, 242, 244), textColor = Color.DarkGray)
+                            },
+                            //buttonColor = Color(242, 242, 244), textColor = Color.DarkGray
+                        )
                     }
                     Column(
                         modifier = Modifier
@@ -318,31 +357,46 @@ fun CalcScreen(
                             number = "/",
                             onClick = {
                                 viewModel.appendButtonChar("/")
-                            }, buttonColor = Color(239, 239, 239), textColor = Color.DarkGray)
+                            },
+                            buttonColor = Color(239, 239, 239),
+                            //textColor = Color.DarkGray
+                        )
                         CalculatorButton(
                             modifier = Modifier.weight(1f),
                             number = "*",
                             onClick = {
                                 viewModel.appendButtonChar("*")
-                            }, buttonColor = Color(239, 239, 239), textColor = Color.DarkGray)
+                            },
+                            buttonColor = Color(239, 239, 239),
+                            //textColor = Color.DarkGray
+                        )
                         CalculatorButton(
                             modifier = Modifier.weight(1f),
                             number = "+",
                             onClick = {
                                 viewModel.appendButtonChar("+")
-                            }, buttonColor = Color(239, 239, 239), textColor = Color.DarkGray)
+                            },
+                            buttonColor = Color(239, 239, 239),
+                            //textColor = Color.DarkGray
+                        )
                         CalculatorButton(
                             modifier = Modifier.weight(1f),
                             number = "-",
                             onClick = {
                                 viewModel.appendButtonChar("-")
-                            }, buttonColor = Color(239, 239, 239), textColor = Color.DarkGray)
+                            },
+                            buttonColor = Color(239, 239, 239),
+                            //textColor = Color.DarkGray
+                        )
                         CalculatorButton(
                             modifier = Modifier.weight(1f),
                             number = "=",
                             onClick = {
                                 viewModel.calculateResult()
-                            }, buttonColor = Color(239, 239, 239), textColor = Color.DarkGray)
+                            },
+                            buttonColor = Color(124,64,254),
+                            textColor = Color.DarkGray
+                        )
                     }
                 }
             }
