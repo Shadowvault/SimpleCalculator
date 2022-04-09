@@ -1,9 +1,7 @@
 package com.example.simplecalculator.presentation.screens
 
 import androidx.compose.foundation.*
-import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.text.ClickableText
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
@@ -13,11 +11,9 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -56,9 +52,9 @@ fun CalcScreen(
     val scroll = rememberScrollState(0)
     val historyScroll = rememberScrollState(0)
 
-    val currencyList = listOf<String>("EUR", "USD", "CHF", "SEK", "GBP", "JPY", "AUD", "CAD")
+    val currencyList = listOf("EUR", "USD", "CHF", "SEK", "GBP", "JPY", "AUD", "CAD")
 
-    Surface() {
+    Surface {
         Column(
             modifier = Modifier.fillMaxSize(),
             verticalArrangement = Arrangement.SpaceBetween,

@@ -1,18 +1,16 @@
 package com.example.simplecalculator.presentation.screens
 
-import android.util.Log
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.simplecalculator.common.Resource
 import com.example.simplecalculator.domain.usecase.GetConversionUseCase
 import com.github.keelar.exprk.Expressions
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
-import kotlinx.coroutines.launch
 import javax.inject.Inject
+import kotlin.math.round
 
 @HiltViewModel
 class CalcScreenViewModel @Inject constructor(
@@ -24,20 +22,20 @@ class CalcScreenViewModel @Inject constructor(
 
     private val _hasBeenEval = mutableStateOf(false)
 
-    private val _mainTextFlow = mutableStateOf<String>("")
+    private val _mainTextFlow = mutableStateOf("")
     val mainTextState = _mainTextFlow
 
-    private val _historyTextFlow = mutableStateOf<String>("")
+    private val _historyTextFlow = mutableStateOf("")
     val historyTextFlow = _historyTextFlow
 
-    private val _roundBracketCount = mutableStateOf<Int>(0)
+    private val _roundBracketCount = mutableStateOf(0)
     private val _canAppendDot = mutableStateOf(true)
 
     fun getConversion(baseC: String, targetC: String, amountC: String) {
         getConversionUseCase(baseC, targetC, amountC).onEach { result ->
             when (result) {
                 is Resource.Success -> _conversionResult.value =
-                    (Math.round(result.data!!.conversionResult * 100.0) / 100.0).toString()
+                    (round(result.data!!.conversionResult * 100.0) / 100.0).toString()
                 is Resource.Error -> _conversionResult.value = result.message.toString()
                 is Resource.Loading -> _conversionResult.value = ""
             }
@@ -126,9 +124,8 @@ class CalcScreenViewModel @Inject constructor(
             }
             "Del" -> {
                 if (_mainTextFlow.value.isNotEmpty()) {
-
-                    when(_mainTextFlow.value.last().toString()) {
-                        "-","+","*","/" -> _canAppendDot.value = false
+                    when (_mainTextFlow.value.last().toString()) {
+                        "-", "+", "*", "/" -> _canAppendDot.value = false
                         "." -> _canAppendDot.value = true
                         "(" -> _roundBracketCount.value -= 1
                         ")" -> _roundBracketCount.value += 1
@@ -142,14 +139,12 @@ class CalcScreenViewModel @Inject constructor(
     fun calculateResult() {
         var tryEval = _mainTextFlow.value
         var countB = _roundBracketCount.value
-        var i = 0
-        while (i < tryEval.length && tryEval.isNotEmpty()) {
+        while (tryEval.isNotEmpty()) {
             if (tryEval.last().toString() in arrayOf("-", "+", "*", "/", ".", "(")) {
                 if (tryEval.last().toString() == "(") {
                     countB -= 1
                 }
                 tryEval = tryEval.dropLast(1)
-                i += 1
             } else {
                 break
             }
@@ -160,9 +155,7 @@ class CalcScreenViewModel @Inject constructor(
         try {
             _historyTextFlow.value = tryEval
             tryEval = Expressions().eval(tryEval).toString()
-            Log.d("meta to eval", tryEval)
             _mainTextFlow.value = tryEval
-            Log.d("meta to ison", _mainTextFlow.value)
             _hasBeenEval.value = true
             _roundBracketCount.value = 0
             _canAppendDot.value =
@@ -183,5 +176,5 @@ class CalcScreenViewModel @Inject constructor(
         _canAppendDot.value = true
         _roundBracketCount.value = 0
     }
-    
+
 }

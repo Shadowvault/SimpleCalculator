@@ -1,6 +1,5 @@
 package com.example.simplecalculator.domain.model
 
-import com.google.gson.annotations.SerializedName
 
 data class ConversionWithAmount(
     val baseCode: String,
